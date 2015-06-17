@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import SockJSClient from 'sockjs';
 
 var events  = ['close', 'error', 'message', 'open'];
 var filter  = Ember.EnumerableUtils.filter;
@@ -69,7 +70,7 @@ export default Ember.ObjectProxy.extend({
   },
 
   reconnect() {
-    this.set('socket', new WebSocket(this.socket.url));
+    this.set('socket', new SockJSClient(this.socket.url));
     this.setupInternalListeners();
   },
 
