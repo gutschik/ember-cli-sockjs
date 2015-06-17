@@ -36,7 +36,7 @@
   },
   "keywords": [
     "ember-addon",
-    "Sockjs"
+    "Sockjs",
     "websockets",
     "sockets",
     "web sockets",
