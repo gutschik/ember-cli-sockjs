@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import SockJsProxy from 'ember-cli-sockjs/helpers/sockjs-proxy';
+import SockJSClient from 'sockjs';
 
 var forEach = Ember.EnumerableUtils.forEach;
 var filter = Ember.EnumerableUtils.filter;
@@ -32,9 +33,9 @@ export default Ember.Service.extend({
 
     if (proxy && this.websocketIsNotClosed(proxy.socket)) { return proxy.socket; }
 
-    proxy = WebsocketProxy.create({
+    proxy = SockJsProxy.create({
       content: this,
-      socket: new WebSocket(this.normalizeURL(url))
+      socket: new SockJSClient(this.normalizeURL(url))
     });
 
     this.get('sockets').pushObject({
@@ -70,11 +71,11 @@ export default Ember.Service.extend({
   *
   */
   normalizeURL(url) {
-    var parsedUrl = new URI(url);
+    //var parsedUrl = new URI(url);
 
-    if(parsedUrl.path() === '/' && url.slice(-1) !== '/') {
-      return url + '/';
-    }
+    //if(parsedUrl.path() === '/' && url.slice(-1) !== '/') {
+   //   return url + '/';
+  //  }
 
     return url;
   },
