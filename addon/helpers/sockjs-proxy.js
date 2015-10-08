@@ -81,7 +81,7 @@ export default Ember.ObjectProxy.extend({
       this.socket['on' + eventName] = event => {
         Ember.run(() => {
           var activeListeners = filter(self.listeners, listener => {
-            return listener.url === event.currentTarget.url && listener.type === eventName;
+            return listener.type === eventName;
           });
 
           // TODO: filter active listeners for contexts that are not destroyed
