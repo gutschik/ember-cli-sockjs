@@ -1,10 +1,9 @@
 import Ember from 'ember';
 import SockJSClient from 'sockjs';
 
-var events  = ['close', 'error', 'message', 'open'];
-var filter  = Ember.EnumerableUtils.filter;
-var indexOf = Ember.EnumerableUtils.indexOf;
-var forEach = Ember.EnumerableUtils.forEach;
+const events  = ['close', 'error', 'message', 'open'];
+const { filter, indexOf, forEach } = Array.prototype;
+const { assert } = Ember;
 
 export default Ember.ObjectProxy.extend({
   /*
@@ -18,7 +17,7 @@ export default Ember.ObjectProxy.extend({
   listeners: null,
 
   init() {
-    this._super.apply(this, arguments);
+    this._super(...arguments);
     this.listeners = Ember.makeArray();
     this.setupInternalListeners();
   },
@@ -30,9 +29,9 @@ export default Ember.ObjectProxy.extend({
   * type: must be either 'open', 'message', 'close', 'error'
   */
   on(type, callback, context) {
-    Ember.assert(type + ' is not a recognized event name. Please use on of the following: ' + events.join(', '), indexOf(events, type) !== -1);
-    Ember.assert('The second argument must be a function.', Ember.typeOf(callback) === 'function');
-    Ember.assert('The third argument must be the context of the surrounding object.', Ember.typeOf(context) !== 'undefined');
+    assert(`${type} is not a recognized event name. Please use on of the following: ${events.join(', ')}`, indexOf.call(events, type) !== -1);
+    assert('The second argument must be a function.', typeof callback === 'function');
+    assert('The third argument must be the context of the surrounding object.', typeof context !== 'undefined');
 
     this.listeners.push({
       url: this.socket.url,
@@ -47,9 +46,7 @@ export default Ember.ObjectProxy.extend({
   * will not longer be invoked when the given `type` event happens.
   */
   off(type, callback) {
-    this.listeners = filter(this.listeners, listeners => {
-      return !(listeners.callback === callback && listeners.type === type);
-    });
+    this.listeners = filter.call(this.listeners, listeners => !(listeners.callback === callback && listeners.type === type));
   },
 
   /*
@@ -61,6 +58,8 @@ export default Ember.ObjectProxy.extend({
     if(shouldStringify && JSON && JSON.stringify) {
       message = JSON.stringify(message);
     }
+
+    assert('Cannot send message to the websocket while it is not open.', this.readyState() === SockJSClient.OPEN);
 
     this.socket.send(message);
   },
@@ -77,20 +76,29 @@ export default Ember.ObjectProxy.extend({
   setupInternalListeners() {
     var self = this;
 
-    forEach(events, eventName => {
+    forEach.call(events, eventName => {
       this.socket['on' + eventName] = event => {
         Ember.run(() => {
-          var activeListeners = filter(self.listeners, listener => {
+          var activeListeners = filter.call(this.listeners, listener => {
             return listener.type === eventName;
           });
 
           // TODO: filter active listeners for contexts that are not destroyed
-
-          activeListeners.forEach(item => {
-            item.callback.call(item.context, event);
+          forEach.call(activeListeners, item => {
+            if (item.context) {
+              item.callback.call(item.context, event);
+            }
+            else {
+              item.callback(event);
+            }
           });
         });
       };
     });
-  }
+  },
+
+  /*
+   * A helper method to get access to the readyState of the websocket.
+   */
+  readyState() { return this.socket.readyState; }
 });

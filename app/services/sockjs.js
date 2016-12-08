@@ -2,8 +2,7 @@ import Ember from 'ember';
 import SockJsProxy from 'ember-cli-sockjs/helpers/sockjs-proxy';
 import SockJSClient from 'sockjs';
 
-var forEach = Ember.EnumerableUtils.forEach;
-var filter = Ember.EnumerableUtils.filter;
+const { filter, forEach } = Array.prototype;
 
 export default Ember.Service.extend({
 
@@ -52,7 +51,7 @@ export default Ember.Service.extend({
   closeSocketFor(url) {
     var filteredSockets = [];
 
-    forEach(this.get('sockets'), item => {
+    forEach.call(this.get('sockets'), item => {
       if(item.url === this.normalizeURL(url)) {
         item.socket.close();
       }
@@ -71,11 +70,10 @@ export default Ember.Service.extend({
   *
   */
   normalizeURL(url) {
-    //var parsedUrl = new URI(url);
-
-    //if(parsedUrl.path() === '/' && url.slice(-1) !== '/') {
-   //   return url + '/';
-  //  }
+    
+    if (url.slice(-1) !== '/') {
+      return url + '/';
+    }
 
     return url;
   },
@@ -88,7 +86,7 @@ export default Ember.Service.extend({
   * Returns the socket object from the cache if one matches the url else undefined
   */
   findSocketInCache(socketsCache, url) {
-    var cachedResults = filter(socketsCache, websocket => {
+    var cachedResults = filter.call(socketsCache, websocket => {
       return websocket['url'] === this.normalizeURL(url);
     });
 
